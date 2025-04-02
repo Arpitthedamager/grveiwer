@@ -19,14 +19,27 @@ function PCBModel() {
   const pcbHeight = 60;
   const pcbThickness = 1.6;
   
-  // Create a PCB texture
-  const textureFront = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', true));
-  const textureBack = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', false));
+  // Create PCB textures with high detail using the existing createPCBTexture function
+  const textureFront = useRef<THREE.CanvasTexture | null>(null);
+  const textureBack = useRef<THREE.CanvasTexture | null>(null);
+
+  useEffect(() => {
+    // Initialize textures once the component mounts
+    if (textureFront.current === null) {
+      textureFront.current = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', true));
+      textureFront.current.anisotropy = 16;
+    }
+    
+    if (textureBack.current === null) {
+      textureBack.current = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', false));
+      textureBack.current.anisotropy = 16;
+    }
+  }, []);
   
   return (
     <group>
-      {/* Main PCB board - Front Side */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]}>
+      {/* Main PCB board with refined materials */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]} castShadow receiveShadow>
         <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
         <meshPhysicalMaterial 
           color="#0a5f2c"
@@ -34,13 +47,13 @@ function PCBModel() {
           metalness={0.2}
           clearcoat={0.8}
           clearcoatRoughness={0.2}
-          map={textureFront}
+          map={textureFront.current}
           side={THREE.FrontSide}
         />
       </mesh>
 
-      {/* Main PCB board - Back Side */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]}>
+      {/* PCB back side with separate material for realistic look */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]} castShadow receiveShadow>
         <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
         <meshPhysicalMaterial 
           color="#0a5f2c"
@@ -48,45 +61,134 @@ function PCBModel() {
           metalness={0.2}
           clearcoat={0.8}
           clearcoatRoughness={0.2}
-          map={textureBack}
+          map={textureBack.current}
           side={THREE.BackSide}
         />
       </mesh>
       
-      {/* Black QFP IC component */}
-      <mesh position={[15, 2.2, 10]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* PCB edge with different material */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]}>
+        <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
+        <meshPhysicalMaterial 
+          color="#066329"
+          roughness={0.5}
+          metalness={0.1}
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.95}
+        />
+      </mesh>
+      
+      {/* Black QFP IC component with better materials */}
+      <mesh position={[15, 2.2, 10]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[12, 12, 1.5]} />
-        <meshPhysicalMaterial color="black" roughness={0.7} />
+        <meshPhysicalMaterial color="#111" roughness={0.7} />
         
         {/* IC markings */}
         <mesh position={[0, 0.76, 0]} rotation={[0, 0, 0]}>
           <planeGeometry args={[10, 10]} />
-          <meshBasicMaterial color="white" transparent opacity={0.7}>
+          <meshBasicMaterial color="white" transparent opacity={0.8}>
             <canvasTexture attach="map" image={createICTexture()} />
+          </meshBasicMaterial>
+        </mesh>
+        
+        {/* IC pins - with more detailed geometry */}
+        {[...Array(8)].map((_, i) => {
+          const spacing = 12 / 9;
+          const offset = -12/2 + spacing * (i + 1);
+          
+          return (
+            <group key={`pins-${i}`}>
+              {/* Bottom row */}
+              <mesh position={[offset, -12/2 - 0.6, -1.5/2 + 0.1]} rotation={[0, 0, 0]}>
+                <boxGeometry args={[0.5, 1.2, 0.2]} />
+                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+              </mesh>
+              
+              {/* Top row */}
+              <mesh position={[offset, 12/2 + 0.6, -1.5/2 + 0.1]} rotation={[0, 0, 0]}>
+                <boxGeometry args={[0.5, 1.2, 0.2]} />
+                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+              </mesh>
+              
+              {/* Left column */}
+              <mesh position={[-12/2 - 0.6, offset, -1.5/2 + 0.1]} rotation={[0, 0, Math.PI/2]}>
+                <boxGeometry args={[0.5, 1.2, 0.2]} />
+                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+              </mesh>
+              
+              {/* Right column */}
+              <mesh position={[12/2 + 0.6, offset, -1.5/2 + 0.1]} rotation={[0, 0, Math.PI/2]}>
+                <boxGeometry args={[0.5, 1.2, 0.2]} />
+                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+              </mesh>
+            </group>
+          );
+        })}
+      </mesh>
+      
+      {/* Black SOT-23 with more detail */}
+      <mesh position={[-15, 1.7, 15]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
+        <boxGeometry args={[3, 3, 1]} />
+        <meshPhysicalMaterial color="#0d0d0d" roughness={0.7} />
+        
+        {/* SOT-23 pins */}
+        <mesh position={[-1, -1.5, -0.5]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.8, 0.5, 0.2]} />
+          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[1, -1.5, -0.5]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.8, 0.5, 0.2]} />
+          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[0, 1.5, -0.5]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.8, 0.5, 0.2]} />
+          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+        </mesh>
+      </mesh>
+      
+      {/* Silver crystal with better reflections */}
+      <mesh position={[-15, 2.0, -5]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
+        <boxGeometry args={[7, 3, 1.5]} />
+        <meshPhysicalMaterial 
+          color="silver" 
+          metalness={0.9} 
+          roughness={0.1}
+          clearcoat={1.0}
+          clearcoatRoughness={0.1}
+        />
+        
+        {/* Crystal markings */}
+        <mesh position={[0, 0.76, 0]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[6, 2.5]} />
+          <meshBasicMaterial color="black" transparent opacity={0.7}>
+            <canvasTexture attach="map" image={createCrystalTexture()} />
           </meshBasicMaterial>
         </mesh>
       </mesh>
       
-      {/* Black SOT-23 */}
-      <mesh position={[-15, 1.7, 15]} rotation={[-Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[3, 3, 1]} />
-        <meshPhysicalMaterial color="black" roughness={0.7} />
-      </mesh>
-      
-      {/* Silver crystal */}
-      <mesh position={[-15, 2.0, -5]} rotation={[-Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[7, 3, 1.5]} />
-        <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.2} />
-      </mesh>
-      
       {/* Small capacitor */}
-      <mesh position={[-15, 2.0, -15]} rotation={[-Math.PI / 2, Math.PI / 2, 0]}>
+      <mesh position={[-15, 2.0, -15]} rotation={[-Math.PI / 2, Math.PI / 2, 0]} castShadow>
         <cylinderGeometry args={[2, 2, 3, 32]} />
         <meshPhysicalMaterial color="#444" metalness={0.3} roughness={0.5} />
+        
+        {/* Capacitor markings */}
+        <mesh position={[0, 0, 2.01]} rotation={[Math.PI/2, 0, 0]}>
+          <circleGeometry args={[1.8, 32]} />
+          <meshBasicMaterial color="#222" />
+          <mesh position={[0, 0, 0.01]}>
+            <circleGeometry args={[1.4, 32]} />
+            <meshBasicMaterial color="#444" />
+            <mesh position={[0, 0, 0.01]}>
+              <planeGeometry args={[2, 0.4]} />
+              <meshBasicMaterial color="white" />
+            </mesh>
+          </mesh>
+        </mesh>
       </mesh>
       
-      {/* Big electrolytic capacitor */}
-      <mesh position={[0, 3.5, -15]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* Big electrolytic capacitor with detailed top and polarity */}
+      <mesh position={[0, 3.5, -15]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <cylinderGeometry args={[4, 4, 5, 32]} />
         <meshPhysicalMaterial color="#222" metalness={0.3} roughness={0.7} />
         
@@ -101,91 +203,310 @@ function PCBModel() {
           <boxGeometry args={[0.5, 0.1, 3]} />
           <meshBasicMaterial color="white" />
         </mesh>
+        
+        {/* Capacitor value label */}
+        <mesh position={[0, 0, 4.01]} rotation={[Math.PI/2, 0, 0]}>
+          <planeGeometry args={[6, 3]} />
+          <meshBasicMaterial color="white" transparent opacity={0.8}>
+            <canvasTexture attach="map" image={createCapacitorLabel()} />
+          </meshBasicMaterial>
+        </mesh>
       </mesh>
       
-      {/* USB connector */}
-      <mesh position={[20, 2.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* USB connector with improved detail */}
+      <mesh position={[20, 2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[15, 8, 3]} />
-        <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+        <meshPhysicalMaterial 
+          color="silver" 
+          metalness={0.9} 
+          roughness={0.1}
+          clearcoat={0.5}
+          clearcoatRoughness={0.2}
+        />
         
         {/* USB opening */}
         <mesh position={[7.51, 0, 0]} rotation={[0, 0, 0]}>
           <boxGeometry args={[0.1, 5, 1.5]} />
           <meshPhysicalMaterial color="black" metalness={0.1} roughness={0.8} />
         </mesh>
+        
+        {/* USB label */}
+        <mesh position={[0, 4.01, 0]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[10, 6]} />
+          <meshBasicMaterial color="#888" transparent opacity={0.5}>
+            <canvasTexture attach="map" image={createUSBLabel()} />
+          </meshBasicMaterial>
+        </mesh>
       </mesh>
       
-      {/* White silkscreen label */}
+      {/* White silkscreen label with detailed text */}
       <mesh position={[0, 1.7, 20]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[40, 5]} />
-        <meshBasicMaterial color="white" />
+        <meshBasicMaterial color="white" transparent opacity={0.9}>
+          <canvasTexture attach="map" image={createSilkscreenLabel()} />
+        </meshBasicMaterial>
       </mesh>
       
-      {/* Mounting holes */}
+      {/* Mounting holes with metal ring */}
       <CircleHole position={[25, 0, 25]} />
       <CircleHole position={[-25, 0, 25]} />
       <CircleHole position={[25, 0, -25]} />
       <CircleHole position={[-25, 0, -25]} />
       
-      {/* SMD resistors and LEDs */}
+      {/* SMD resistors and LEDs with improved material */}
       {[...Array(5)].map((_, i) => (
         <SMDComponent 
           key={i} 
           position={[15 - i * 6, 1.7, -20]} 
           color={i === 2 ? "#ff0000" : "#f0f0f0"} 
           isLED={i === 2}
+          label={i === 2 ? "LED" : `${i * 100 + 100}Ω`}
         />
       ))}
       
-      {/* LED effect for the LED component */}
+      {/* LED effect for the LED component with bloom effect */}
       <mesh position={[3, 1.8, -20]}>
-        <pointLight color="#ff0000" intensity={0.3} distance={5} />
+        <pointLight color="#ff0000" intensity={0.5} distance={8} decay={2} />
+        <spotLight 
+          position={[0, 0.5, 0]} 
+          angle={0.3} 
+          penumbra={1} 
+          intensity={0.5} 
+          color="#ff0000" 
+          distance={5}
+          castShadow={false}
+        />
         <sphereGeometry args={[0.1, 16, 16]} />
         <meshBasicMaterial color="#ff0000" />
       </mesh>
       
-      {/* SOIC-8 component */}
-      <mesh position={[-12, 1.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* SOIC-8 component with improved pins */}
+      <mesh position={[-12, 1.8, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[5, 4, 1.2]} />
         <meshPhysicalMaterial color="black" roughness={0.8} />
         
         {/* SOIC pins - left side */}
-        <mesh position={[-2, -1, 0]} rotation={[0, 0, 0]}>
-          <boxGeometry args={[1, 2, 0.5]} />
-          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
-        </mesh>
+        {[...Array(4)].map((_, i) => (
+          <mesh 
+            key={`soic-left-${i}`} 
+            position={[-2.5, -1.5 + i, -0.6]} 
+            rotation={[0, 0, 0]}
+          >
+            <boxGeometry args={[1, 0.4, 0.2]} />
+            <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+          </mesh>
+        ))}
         
         {/* SOIC pins - right side */}
-        <mesh position={[2, -1, 0]} rotation={[0, 0, 0]}>
-          <boxGeometry args={[1, 2, 0.5]} />
-          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+        {[...Array(4)].map((_, i) => (
+          <mesh 
+            key={`soic-right-${i}`} 
+            position={[2.5, -1.5 + i, -0.6]} 
+            rotation={[0, 0, 0]}
+          >
+            <boxGeometry args={[1, 0.4, 0.2]} />
+            <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+          </mesh>
+        ))}
+        
+        {/* SOIC label */}
+        <mesh position={[0, 0, 0.61]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[4, 3]} />
+          <meshBasicMaterial color="white" transparent opacity={0.7}>
+            <canvasTexture attach="map" image={createSOICLabel()} />
+          </meshBasicMaterial>
         </mesh>
       </mesh>
     </group>
   );
 }
 
-function SMDComponent({ position, color, isLED = false }: { position: [number, number, number], color: string, isLED?: boolean }) {
+// Enhanced SMD Component with label
+function SMDComponent({ 
+  position, 
+  color, 
+  isLED = false,
+  label = ""
+}: { 
+  position: [number, number, number], 
+  color: string, 
+  isLED?: boolean,
+  label?: string
+}) {
   return (
-    <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>
-      <boxGeometry args={[2, 1, 0.5]} />
-      <meshPhysicalMaterial 
-        color={color} 
-        roughness={0.5} 
-        emissive={isLED ? color : undefined}
-        emissiveIntensity={isLED ? 0.5 : 0}
-      />
-    </mesh>
+    <group position={position}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} castShadow>
+        <boxGeometry args={[2, 1, 0.5]} />
+        <meshPhysicalMaterial 
+          color={color} 
+          roughness={0.5} 
+          emissive={isLED ? color : undefined}
+          emissiveIntensity={isLED ? 0.5 : 0}
+        />
+      </mesh>
+      
+      {/* Label on top */}
+      {label && (
+        <mesh position={[0, 0.26, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1.8, 0.8]} />
+          <meshBasicMaterial color="black" transparent opacity={0.7}>
+            <canvasTexture attach="map" image={createComponentLabel(label)} />
+          </meshBasicMaterial>
+        </mesh>
+      )}
+    </group>
   );
 }
 
+// Enhanced mounting hole with copper ring
 function CircleHole({ position }: { position: [number, number, number] }) {
   return (
-    <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>
-      <cylinderGeometry args={[2, 2, 2, 32]} />
-      <meshStandardMaterial color="#333" metalness={0.5} />
-    </mesh>
+    <group position={position}>
+      {/* Hole */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[2, 2, 2, 32]} />
+        <meshStandardMaterial color="#333" metalness={0.5} />
+      </mesh>
+      
+      {/* Metal ring around hole */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 1.01, 0]}>
+        <ringGeometry args={[2, 3.5, 32]} />
+        <meshPhysicalMaterial 
+          color="#cca069" 
+          metalness={0.9} 
+          roughness={0.2}
+        />
+      </mesh>
+    </group>
   );
+}
+
+// Create a texture for component labels
+function createComponentLabel(text: string) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width/2, canvas.height/2);
+  }
+  
+  return canvas;
+}
+
+// Create a texture for crystal
+function createCrystalTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('16.000 MHz', canvas.width/2, canvas.height/2);
+  }
+  
+  return canvas;
+}
+
+// Create a texture for capacitor label
+function createCapacitorLabel() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('470μF 16V', canvas.width/2, canvas.height/2);
+  }
+  
+  return canvas;
+}
+
+// Create a texture for USB label
+function createUSBLabel() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('USB', canvas.width/2, canvas.height/2);
+  }
+  
+  return canvas;
+}
+
+// Create a texture for SOIC label
+function createSOICLabel() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('LM358', canvas.width/2, canvas.height/2 - 15);
+    ctx.font = '18px Arial';
+    ctx.fillText('OP-AMP', canvas.width/2, canvas.height/2 + 20);
+  }
+  
+  return canvas;
+}
+
+// Create a texture for silkscreen label
+function createSilkscreenLabel() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  if (ctx) {
+    ctx.fillStyle = 'transparent';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('PCB-RAR v1.0 © 2024', canvas.width/2, canvas.height/2);
+  }
+  
+  return canvas;
 }
 
 // Create a PCB texture with copper traces pattern
