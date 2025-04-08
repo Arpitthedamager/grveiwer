@@ -26,12 +26,12 @@ function PCBModel() {
   useEffect(() => {
     // Initialize textures once the component mounts
     if (textureFront.current === null) {
-      textureFront.current = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', true));
+      textureFront.current = new THREE.CanvasTexture(createPCBTexture('#0a6f30', true));
       textureFront.current.anisotropy = 16;
     }
     
     if (textureBack.current === null) {
-      textureBack.current = new THREE.CanvasTexture(createPCBTexture('#0a5f2c', false));
+      textureBack.current = new THREE.CanvasTexture(createPCBTexture('#0a6f30', false));
       textureBack.current.anisotropy = 16;
     }
   }, []);
@@ -42,13 +42,16 @@ function PCBModel() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]} castShadow receiveShadow>
         <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
         <meshPhysicalMaterial 
-          color="#0a5f2c"
-          roughness={0.3}
-          metalness={0.2}
-          clearcoat={0.8}
-          clearcoatRoughness={0.2}
+          color="#0a8f35"
+          roughness={0.25}
+          metalness={0.15}
+          clearcoat={1.0}
+          clearcoatRoughness={0.15}
+          emissive="#032312"
+          emissiveIntensity={0.2}
           map={textureFront.current}
           side={THREE.FrontSide}
+          envMapIntensity={1.5}
         />
       </mesh>
 
@@ -56,13 +59,16 @@ function PCBModel() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]} castShadow receiveShadow>
         <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
         <meshPhysicalMaterial 
-          color="#0a5f2c"
-          roughness={0.3}
-          metalness={0.2}
-          clearcoat={0.8}
-          clearcoatRoughness={0.2}
+          color="#0a8f35"
+          roughness={0.25}
+          metalness={0.15}
+          clearcoat={1.0}
+          clearcoatRoughness={0.15}
+          emissive="#032312"
+          emissiveIntensity={0.2}
           map={textureBack.current}
           side={THREE.BackSide}
+          envMapIntensity={1.5}
         />
       </mesh>
       
@@ -70,24 +76,24 @@ function PCBModel() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]}>
         <boxGeometry args={[pcbWidth, pcbHeight, pcbThickness]} />
         <meshPhysicalMaterial 
-          color="#066329"
-          roughness={0.5}
+          color="#088f3b"
+          roughness={0.6}
           metalness={0.1}
           side={THREE.DoubleSide}
           transparent
-          opacity={0.95}
+          opacity={0.97}
         />
       </mesh>
       
       {/* Black QFP IC component with better materials */}
       <mesh position={[15, 2.2, 10]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[12, 12, 1.5]} />
-        <meshPhysicalMaterial color="#111" roughness={0.7} />
+        <meshPhysicalMaterial color="#101010" roughness={0.6} metalness={0.2} emissive="#000000" />
         
         {/* IC markings */}
         <mesh position={[0, 0.76, 0]} rotation={[0, 0, 0]}>
           <planeGeometry args={[10, 10]} />
-          <meshBasicMaterial color="white" transparent opacity={0.8}>
+          <meshBasicMaterial color="white" transparent opacity={0.95}>
             <canvasTexture attach="map" image={createICTexture()} />
           </meshBasicMaterial>
         </mesh>
@@ -102,25 +108,25 @@ function PCBModel() {
               {/* Bottom row */}
               <mesh position={[offset, -12/2 - 0.6, -1.5/2 + 0.1]} rotation={[0, 0, 0]}>
                 <boxGeometry args={[0.5, 1.2, 0.2]} />
-                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+                <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
               </mesh>
               
               {/* Top row */}
               <mesh position={[offset, 12/2 + 0.6, -1.5/2 + 0.1]} rotation={[0, 0, 0]}>
                 <boxGeometry args={[0.5, 1.2, 0.2]} />
-                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+                <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
               </mesh>
               
               {/* Left column */}
               <mesh position={[-12/2 - 0.6, offset, -1.5/2 + 0.1]} rotation={[0, 0, Math.PI/2]}>
                 <boxGeometry args={[0.5, 1.2, 0.2]} />
-                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+                <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
               </mesh>
               
               {/* Right column */}
               <mesh position={[12/2 + 0.6, offset, -1.5/2 + 0.1]} rotation={[0, 0, Math.PI/2]}>
                 <boxGeometry args={[0.5, 1.2, 0.2]} />
-                <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+                <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
               </mesh>
             </group>
           );
@@ -130,20 +136,20 @@ function PCBModel() {
       {/* Black SOT-23 with more detail */}
       <mesh position={[-15, 1.7, 15]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[3, 3, 1]} />
-        <meshPhysicalMaterial color="#0d0d0d" roughness={0.7} />
+        <meshPhysicalMaterial color="#0a0a0a" roughness={0.6} metalness={0.2} />
         
         {/* SOT-23 pins */}
         <mesh position={[-1, -1.5, -0.5]} rotation={[0, 0, 0]}>
           <boxGeometry args={[0.8, 0.5, 0.2]} />
-          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+          <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
         </mesh>
         <mesh position={[1, -1.5, -0.5]} rotation={[0, 0, 0]}>
           <boxGeometry args={[0.8, 0.5, 0.2]} />
-          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+          <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
         </mesh>
         <mesh position={[0, 1.5, -0.5]} rotation={[0, 0, 0]}>
           <boxGeometry args={[0.8, 0.5, 0.2]} />
-          <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+          <meshStandardMaterial color="silver" metalness={0.9} roughness={0.1} />
         </mesh>
       </mesh>
       
@@ -152,16 +158,17 @@ function PCBModel() {
         <boxGeometry args={[7, 3, 1.5]} />
         <meshPhysicalMaterial 
           color="silver" 
-          metalness={0.9} 
-          roughness={0.1}
+          metalness={0.95} 
+          roughness={0.05}
           clearcoat={1.0}
-          clearcoatRoughness={0.1}
+          clearcoatRoughness={0.05}
+          envMapIntensity={2.0}
         />
         
         {/* Crystal markings */}
         <mesh position={[0, 0.76, 0]} rotation={[0, 0, 0]}>
           <planeGeometry args={[6, 2.5]} />
-          <meshBasicMaterial color="black" transparent opacity={0.7}>
+          <meshBasicMaterial color="black" transparent opacity={0.85}>
             <canvasTexture attach="map" image={createCrystalTexture()} />
           </meshBasicMaterial>
         </mesh>
@@ -170,7 +177,7 @@ function PCBModel() {
       {/* Small capacitor */}
       <mesh position={[-15, 2.0, -15]} rotation={[-Math.PI / 2, Math.PI / 2, 0]} castShadow>
         <cylinderGeometry args={[2, 2, 3, 32]} />
-        <meshPhysicalMaterial color="#444" metalness={0.3} roughness={0.5} />
+        <meshPhysicalMaterial color="#555" metalness={0.5} roughness={0.4} />
         
         {/* Capacitor markings */}
         <mesh position={[0, 0, 2.01]} rotation={[Math.PI/2, 0, 0]}>
@@ -187,15 +194,15 @@ function PCBModel() {
         </mesh>
       </mesh>
       
-      {/* Big electrolytic capacitor with detailed top and polarity */}
+      {/* Big electrolytic capacitor with detailed top and polarity - brighter material */}
       <mesh position={[0, 3.5, -15]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <cylinderGeometry args={[4, 4, 5, 32]} />
-        <meshPhysicalMaterial color="#222" metalness={0.3} roughness={0.7} />
+        <meshPhysicalMaterial color="#191919" metalness={0.5} roughness={0.6} />
         
         {/* Cap top */}
         <mesh position={[0, 2.51, 0]} rotation={[0, 0, 0]}>
           <cylinderGeometry args={[4, 4, 0.1, 32]} />
-          <meshPhysicalMaterial color="#444" metalness={0.5} roughness={0.5} />
+          <meshPhysicalMaterial color="#555" metalness={0.6} roughness={0.3} />
         </mesh>
         
         {/* Polarity marking */}
@@ -207,21 +214,22 @@ function PCBModel() {
         {/* Capacitor value label */}
         <mesh position={[0, 0, 4.01]} rotation={[Math.PI/2, 0, 0]}>
           <planeGeometry args={[6, 3]} />
-          <meshBasicMaterial color="white" transparent opacity={0.8}>
+          <meshBasicMaterial color="white" transparent opacity={0.9}>
             <canvasTexture attach="map" image={createCapacitorLabel()} />
           </meshBasicMaterial>
         </mesh>
       </mesh>
       
-      {/* USB connector with improved detail */}
+      {/* USB connector with improved detail - enhanced reflectivity */}
       <mesh position={[20, 2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[15, 8, 3]} />
         <meshPhysicalMaterial 
           color="silver" 
-          metalness={0.9} 
-          roughness={0.1}
-          clearcoat={0.5}
-          clearcoatRoughness={0.2}
+          metalness={0.95} 
+          roughness={0.05}
+          clearcoat={0.6}
+          clearcoatRoughness={0.1}
+          envMapIntensity={2.0}
         />
         
         {/* USB opening */}
@@ -233,57 +241,57 @@ function PCBModel() {
         {/* USB label */}
         <mesh position={[0, 4.01, 0]} rotation={[0, 0, 0]}>
           <planeGeometry args={[10, 6]} />
-          <meshBasicMaterial color="#888" transparent opacity={0.5}>
+          <meshBasicMaterial color="#888" transparent opacity={0.7}>
             <canvasTexture attach="map" image={createUSBLabel()} />
           </meshBasicMaterial>
         </mesh>
       </mesh>
       
-      {/* White silkscreen label with detailed text */}
+      {/* White silkscreen label with detailed text - improved visibility */}
       <mesh position={[0, 1.7, 20]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[40, 5]} />
-        <meshBasicMaterial color="white" transparent opacity={0.9}>
+        <meshBasicMaterial color="white" transparent opacity={0.95}>
           <canvasTexture attach="map" image={createSilkscreenLabel()} />
         </meshBasicMaterial>
       </mesh>
       
-      {/* Mounting holes with metal ring */}
+      {/* Mounting holes with metal ring - improved shine */}
       <CircleHole position={[25, 0, 25]} />
       <CircleHole position={[-25, 0, 25]} />
       <CircleHole position={[25, 0, -25]} />
       <CircleHole position={[-25, 0, -25]} />
       
-      {/* SMD resistors and LEDs with improved material */}
+      {/* SMD resistors and LEDs with improved material - enhanced contrast */}
       {[...Array(5)].map((_, i) => (
         <SMDComponent 
           key={i} 
           position={[15 - i * 6, 1.7, -20]} 
-          color={i === 2 ? "#ff0000" : "#f0f0f0"} 
+          color={i === 2 ? "#ff1a1a" : "#f5f5f5"} 
           isLED={i === 2}
           label={i === 2 ? "LED" : `${i * 100 + 100}Ω`}
         />
       ))}
       
-      {/* LED effect for the LED component with bloom effect */}
+      {/* LED effect for the LED component with bloom effect - brighter glow */}
       <mesh position={[3, 1.8, -20]}>
-        <pointLight color="#ff0000" intensity={0.5} distance={8} decay={2} />
+        <pointLight color="#ff3333" intensity={1.0} distance={12} decay={2} />
         <spotLight 
           position={[0, 0.5, 0]} 
           angle={0.3} 
           penumbra={1} 
-          intensity={0.5} 
-          color="#ff0000" 
-          distance={5}
+          intensity={1.2} 
+          color="#ff5555" 
+          distance={10}
           castShadow={false}
         />
-        <sphereGeometry args={[0.1, 16, 16]} />
-        <meshBasicMaterial color="#ff0000" />
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshBasicMaterial color="#ff4444" />
       </mesh>
       
-      {/* SOIC-8 component with improved pins */}
+      {/* SOIC-8 component with improved pins - enhanced shine */}
       <mesh position={[-12, 1.8, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
         <boxGeometry args={[5, 4, 1.2]} />
-        <meshPhysicalMaterial color="black" roughness={0.8} />
+        <meshPhysicalMaterial color="#111" roughness={0.7} metalness={0.3} />
         
         {/* SOIC pins - left side */}
         {[...Array(4)].map((_, i) => (
@@ -293,7 +301,7 @@ function PCBModel() {
             rotation={[0, 0, 0]}
           >
             <boxGeometry args={[1, 0.4, 0.2]} />
-            <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+            <meshStandardMaterial color="silver" metalness={0.95} roughness={0.05} />
           </mesh>
         ))}
         
@@ -305,17 +313,52 @@ function PCBModel() {
             rotation={[0, 0, 0]}
           >
             <boxGeometry args={[1, 0.4, 0.2]} />
-            <meshPhysicalMaterial color="silver" metalness={0.9} roughness={0.1} />
+            <meshStandardMaterial color="silver" metalness={0.95} roughness={0.05} />
           </mesh>
         ))}
         
         {/* SOIC label */}
         <mesh position={[0, 0, 0.61]} rotation={[0, 0, 0]}>
           <planeGeometry args={[4, 3]} />
-          <meshBasicMaterial color="white" transparent opacity={0.7}>
+          <meshBasicMaterial color="white" transparent opacity={0.9}>
             <canvasTexture attach="map" image={createSOICLabel()} />
           </meshBasicMaterial>
         </mesh>
+      </mesh>
+    </group>
+  );
+}
+
+// Enhanced mounting hole with copper ring - improved shine
+function CircleHole({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Hole */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[2, 2, 3, 32]} />
+        <meshStandardMaterial color="#222" metalness={0.5} roughness={0.5} />
+      </mesh>
+      
+      {/* Metal ring around hole with enhanced reflectivity */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 1.51, 0]}>
+        <ringGeometry args={[2, 4, 32]} />
+        <meshStandardMaterial 
+          color="#dda066" 
+          metalness={0.95} 
+          roughness={0.05}
+          emissive="#663300"
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      
+      {/* Additional highlight ring to make it more visible */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 1.52, 0]}>
+        <ringGeometry args={[2.1, 3.9, 32]} />
+        <meshBasicMaterial 
+          color="#eeddaa" 
+          transparent 
+          opacity={0.3}
+        />
       </mesh>
     </group>
   );
@@ -339,44 +382,23 @@ function SMDComponent({
         <boxGeometry args={[2, 1, 0.5]} />
         <meshPhysicalMaterial 
           color={color} 
-          roughness={0.5} 
+          roughness={0.4} 
           emissive={isLED ? color : undefined}
-          emissiveIntensity={isLED ? 0.5 : 0}
+          emissiveIntensity={isLED ? 0.8 : 0}
+          clearcoat={0.5}
+          clearcoatRoughness={0.2}
         />
       </mesh>
       
-      {/* Label on top */}
+      {/* Label on top - improved visibility */}
       {label && (
         <mesh position={[0, 0.26, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[1.8, 0.8]} />
-          <meshBasicMaterial color="black" transparent opacity={0.7}>
+          <meshBasicMaterial color={isLED ? "white" : "black"} transparent opacity={0.9}>
             <canvasTexture attach="map" image={createComponentLabel(label)} />
           </meshBasicMaterial>
         </mesh>
       )}
-    </group>
-  );
-}
-
-// Enhanced mounting hole with copper ring
-function CircleHole({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {/* Hole */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[2, 2, 2, 32]} />
-        <meshStandardMaterial color="#333" metalness={0.5} />
-      </mesh>
-      
-      {/* Metal ring around hole */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 1.01, 0]}>
-        <ringGeometry args={[2, 3.5, 32]} />
-        <meshPhysicalMaterial 
-          color="#cca069" 
-          metalness={0.9} 
-          roughness={0.2}
-        />
-      </mesh>
     </group>
   );
 }
@@ -870,48 +892,56 @@ export default function PCB3DViewer({ gerberFiles }: PCB3DViewerProps) {
       
       <div className="relative h-[500px] w-full bg-gray-900 rounded-lg overflow-hidden shadow-xl">
         <Canvas shadows dpr={[1, 2]}>
-          <color attach="background" args={['#111']} />
-          <fog attach="fog" args={['#111', 30, 120]} />
+          <color attach="background" args={['#151520']} />
+          <fog attach="fog" args={['#151520', 60, 150]} />
           
-          <ambientLight intensity={0.5} />
+          {/* Improved lighting setup */}
+          <ambientLight intensity={1.0} />
           <directionalLight 
-            position={[10, 20, 15]} 
-            intensity={2} 
+            position={[20, 40, 25]} 
+            intensity={4.5} 
             castShadow 
             shadow-mapSize={[2048, 2048]}
             shadow-camera-far={100}
-            shadow-camera-left={-20}
-            shadow-camera-right={20}
-            shadow-camera-top={20}
-            shadow-camera-bottom={-20}
+            shadow-camera-left={-40}
+            shadow-camera-right={40}
+            shadow-camera-top={40}
+            shadow-camera-bottom={-40}
           />
-          <pointLight position={[-10, 10, -10]} intensity={0.5} color="#fff" />
-          <pointLight position={[0, 5, 0]} intensity={0.3} color="#fff" />
+          <pointLight position={[-20, 20, -20]} intensity={0.8} color="#fff" />
+          <pointLight position={[0, 10, 0]} intensity={0.6} color="#ffffff" />
           <spotLight 
-            position={[-10, 30, 20]} 
-            angle={0.3} 
-            penumbra={1} 
-            intensity={1.5}
+            position={[-15, 40, 25]} 
+            angle={0.4} 
+            penumbra={0.8} 
+            intensity={3}
             castShadow
             shadow-mapSize={[1024, 1024]}
+            color="#ffffff"
+          />
+          <hemisphereLight
+            intensity={0.5}
+            color="#ffffff"
+            groundColor="#323232"
           />
           
           <PCBModel />
           
           <ContactShadows 
             position={[0, -2, 0]} 
-            opacity={0.8} 
+            opacity={0.5} 
             scale={100} 
             blur={2} 
             far={10} 
             color="#000000" 
           />
           
+          {/* Camera positions */}
           {cameraView === 'top' && (
             <PerspectiveCamera 
               makeDefault 
               position={[0, 60, 0]} 
-              fov={25}
+              fov={22}
               rotation={[-Math.PI / 2, 0, 0]}
             />
           )}
@@ -920,7 +950,7 @@ export default function PCB3DViewer({ gerberFiles }: PCB3DViewerProps) {
             <PerspectiveCamera 
               makeDefault 
               position={[0, -60, 0]} 
-              fov={25}
+              fov={22}
               rotation={[Math.PI / 2, 0, 0]}
             />
           )}
@@ -928,8 +958,8 @@ export default function PCB3DViewer({ gerberFiles }: PCB3DViewerProps) {
           {cameraView === 'angle' && (
             <PerspectiveCamera 
               makeDefault 
-              position={[35, 40, 40]} 
-              fov={25}
+              position={[40, 45, 40]} 
+              fov={22}
             />
           )}
           
@@ -939,15 +969,15 @@ export default function PCB3DViewer({ gerberFiles }: PCB3DViewerProps) {
             enableRotate={true}
             autoRotate={rotating}
             autoRotateSpeed={0.5}
-            maxDistance={100}
+            maxDistance={120}
             minDistance={20}
           />
           
-          <Environment preset="city" />
+          <Environment preset="sunset" />
           
           {/* Add a grid to help with scale perception */}
           <gridHelper 
-            args={[120, 24, '#555', '#333']} 
+            args={[120, 24, '#666', '#444']} 
             position={[0, -2, 0]} 
             rotation={[0, Math.PI / 4, 0]}
           />
