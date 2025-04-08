@@ -26,12 +26,12 @@ function PCBModel() {
   useEffect(() => {
     // Initialize textures once the component mounts
     if (textureFront.current === null) {
-      textureFront.current = new THREE.CanvasTexture(createPCBTexture('#0a6f30', true));
+      textureFront.current = new THREE.CanvasTexture(createPCBTexture('front'));
       textureFront.current.anisotropy = 16;
     }
     
     if (textureBack.current === null) {
-      textureBack.current = new THREE.CanvasTexture(createPCBTexture('#0a6f30', false));
+      textureBack.current = new THREE.CanvasTexture(createPCBTexture('back'));
       textureBack.current.anisotropy = 16;
     }
   }, []);
@@ -404,391 +404,448 @@ function SMDComponent({
 }
 
 // Create a texture for component labels
-function createComponentLabel(text: string) {
+function createComponentLabel(text: string, width = 128, height = 64): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 128;
-  canvas.height = 64;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'black';
-    ctx.font = 'bold 28px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, canvas.width/2, canvas.height/2);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw text
+  ctx.fillStyle = 'white';
+  
+  // Adjust font size based on text length
+  const fontSize = Math.min(20, 180 / text.length);
+  ctx.font = `${fontSize}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, width / 2, height / 2);
   
   return canvas;
 }
 
-// Create a texture for crystal
-function createCrystalTexture() {
+// Create a texture for crystal with enhanced detail
+function createCrystalTexture(width = 256, height = 128): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'black';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('16.000 MHz', canvas.width/2, canvas.height/2);
+  // Black background with slight texture
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, width, height);
+  
+  // Add subtle texture
+  ctx.globalAlpha = 0.05;
+  for (let i = 0; i < 200; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y, 1, 1);
   }
+  ctx.globalAlpha = 1.0;
+  
+  // Draw main text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 32px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('16.000 MHz', width / 2, height / 2);
+  
+  // Add manufacturer
+  ctx.font = '14px monospace';
+  ctx.fillText('CRYSTAL', width / 2, height / 4);
+  
+  // Add tolerance info
+  ctx.font = '12px monospace';
+  ctx.fillText('±20 PPM', width / 2, height * 0.75);
   
   return canvas;
 }
 
-// Create a texture for capacitor label
-function createCapacitorLabel() {
+// Create a texture for capacitor label with enhanced detail
+function createCapacitorLabel(width = 256, height = 128): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'black';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('470μF 16V', canvas.width/2, canvas.height/2);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw main text
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('470μF 16V', width / 2, height / 2);
+  
+  // Add manufacturer and temperature rating
+  ctx.font = '14px monospace';
+  ctx.fillText('NICHICON', width / 2, height / 4);
+  ctx.fillText('-40°C~+105°C', width / 2, height * 0.75);
+  
+  // Draw polarization markers
+  ctx.beginPath();
+  ctx.arc(width * 0.15, height * 0.5, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillText('+', width * 0.15, height * 0.5);
+  
+  // Add batch code
+  ctx.font = '12px monospace';
+  ctx.fillText('Lot: 23A45F', width * 0.8, height * 0.85);
   
   return canvas;
 }
 
-// Create a texture for USB label
-function createUSBLabel() {
+// Create a texture for USB label with enhanced detail
+function createUSBLabel(width = 256, height = 128): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('USB', canvas.width/2, canvas.height/2);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw USB logo and text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 36px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('USB', width / 2, height / 2);
+  
+  // Add connector type
+  ctx.font = '18px Arial';
+  ctx.fillText('Type-C', width / 2, height * 0.75);
+  
+  // Draw USB symbol
+  ctx.beginPath();
+  ctx.arc(width * 0.25, height * 0.4, 10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.moveTo(width * 0.25, height * 0.25);
+  ctx.lineTo(width * 0.25, height * 0.4 - 10);
+  ctx.stroke();
+  
+  // Draw horizontal line with endpoints
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(width * 0.15, height * 0.25);
+  ctx.lineTo(width * 0.35, height * 0.25);
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.arc(width * 0.15, height * 0.25, 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(width * 0.35, height * 0.25, 5, 0, Math.PI * 2);
+  ctx.fill();
   
   return canvas;
 }
 
-// Create a texture for SOIC label
-function createSOICLabel() {
+// Create a texture for SOIC label with enhanced detail
+function createSOICLabel(width = 256, height = 128): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('LM358', canvas.width/2, canvas.height/2 - 15);
-    ctx.font = '18px Arial';
-    ctx.fillText('OP-AMP', canvas.width/2, canvas.height/2 + 20);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw chip name
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('LM358', width / 2, height * 0.35);
+  
+  // Draw chip description
+  ctx.font = '16px monospace';
+  ctx.fillText('DUAL OP-AMP', width / 2, height * 0.55);
+  
+  // Draw manufacturer and date code
+  ctx.font = '12px monospace';
+  ctx.fillText('Texas Instruments', width / 2, height * 0.75);
+  ctx.fillText('2304A', width / 2, height * 0.9);
+  
+  // Draw pin 1 marker
+  ctx.beginPath();
+  ctx.arc(width * 0.15, height * 0.15, 8, 0, Math.PI * 2);
+  ctx.fill();
   
   return canvas;
 }
 
-// Create a texture for silkscreen label
-function createSilkscreenLabel() {
+// Create a texture for silkscreen label with enhanced detail
+function createSilkscreenLabel(width = 512, height = 64): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 64;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('PCB-RAR v1.0 © 2024', canvas.width/2, canvas.height/2);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, width, height);
+  
+  // Main board label
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 26px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('PCB-RAR v1.0 © 2024', width / 2, height / 2);
+  
+  // Add board specs
+  ctx.font = '12px Arial';
+  ctx.fillText('2 LAYER FR4 1.6mm HASL', width * 0.2, height * 0.8);
+  
+  // Add website/contact
+  ctx.font = '12px Arial';
+  ctx.fillText('www.rarviewer.com', width * 0.8, height * 0.8);
   
   return canvas;
 }
 
-// Create a PCB texture with copper traces pattern
-function createPCBTexture(baseColor: string, isFront: boolean) {
+// Create texture for PCB with enhanced detail
+function createPCBTexture(side: 'front' | 'back', width = 1024, height = 1024): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 2048;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
   
-  if (ctx) {
-    // Base PCB color
-    ctx.fillStyle = baseColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw detailed PCB elements
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    
-    // Draw reference grid
-    ctx.strokeStyle = '#cca069';
-    ctx.lineWidth = 3;
-    const gridSize = 80;
-    
-    // Main grid
-    for (let y = gridSize; y < canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-    
-    for (let x = gridSize; x < canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-    
-    // Draw PCB traces - common for both sides
-    ctx.strokeStyle = '#cca069'; // Copper color
-    ctx.lineWidth = 10;
-    
-    // Horizontal complex traces
+  // Base color
+  const baseColor = side === 'front' ? '#0a6f30' : '#0a6f30';
+  ctx.fillStyle = baseColor;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Create subtle texture pattern
+  ctx.globalAlpha = 0.07;
+  for (let i = 0; i < 5000; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 2 + 0.5;
+    ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
     ctx.beginPath();
-    ctx.moveTo(centerX - 300, centerY - 300);
-    ctx.lineTo(centerX + 300, centerY - 300);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX - 300, centerY + 300);
-    ctx.lineTo(centerX + 300, centerY + 300);
-    ctx.stroke();
-    
-    // Vertical traces
-    ctx.beginPath();
-    ctx.moveTo(centerX - 300, centerY - 300);
-    ctx.lineTo(centerX - 300, centerY + 300);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX + 300, centerY - 300);
-    ctx.lineTo(centerX + 300, centerY + 300);
-    ctx.stroke();
-    
-    // Add some pads
-    for (let x = centerX - 250; x <= centerX + 250; x += 100) {
-      for (let y = centerY - 250; y <= centerY + 250; y += 100) {
-        ctx.fillStyle = '#cca069';
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    
-    // Side-specific elements
-    if (isFront) {
-      // Front side - add complex QFP footprint
-      const qfpX = centerX + 380;
-      const qfpY = centerY - 150;
-      const qfpSize = 180;
-      
-      // QFP center pad
-      ctx.fillStyle = '#cca069';
-      ctx.beginPath();
-      ctx.rect(qfpX - 50, qfpY - 50, 100, 100);
-      ctx.fill();
-      
-      // QFP pins
-      const pinWidth = 12;
-      const pinLength = 25;
-      const pinSpacing = 20;
-      const pinsPerSide = 8;
-      
-      // Draw pins on all four sides of the QFP
-      for (let i = 0; i < pinsPerSide; i++) {
-        const offset = (i - pinsPerSide / 2 + 0.5) * pinSpacing;
-        
-        // Bottom row
-        ctx.fillRect(qfpX + offset - pinWidth/2, qfpY + qfpSize/2, pinWidth, pinLength);
-        
-        // Top row
-        ctx.fillRect(qfpX + offset - pinWidth/2, qfpY - qfpSize/2 - pinLength, pinWidth, pinLength);
-        
-        // Left column
-        ctx.fillRect(qfpX - qfpSize/2 - pinLength, qfpY + offset - pinWidth/2, pinLength, pinWidth);
-        
-        // Right column
-        ctx.fillRect(qfpX + qfpSize/2, qfpY + offset - pinWidth/2, pinLength, pinWidth);
-      }
-      
-      // Add resistor footprints
-      drawSMDPads(ctx, centerX - 200, centerY + 200, 20, 60);
-      drawSMDPads(ctx, centerX - 150, centerY + 200, 20, 60);
-      drawSMDPads(ctx, centerX - 100, centerY + 200, 20, 60);
-      
-      // Add capacitor footprints
-      drawSMDPads(ctx, centerX + 100, centerY + 200, 25, 50);
-      drawSMDPads(ctx, centerX + 150, centerY + 200, 25, 50);
-      
-      // Add microcontroller traces
-      ctx.lineWidth = 5;
-      for (let i = 0; i < 10; i++) {
-        const startX = qfpX - qfpSize/2 - pinLength;
-        const startY = qfpY - qfpSize/2 + i * pinSpacing;
-        
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(startX - 100, startY);
-        if (i % 2 === 0) {
-          ctx.lineTo(startX - 150, startY + 30);
-        } else {
-          ctx.lineTo(startX - 150, startY - 30);
-        }
-        ctx.stroke();
-      }
-      
-      // Add component labels with white silkscreen
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '32px Arial';
-      ctx.fillText('IC1', qfpX, qfpY - qfpSize/2 - 50);
-      ctx.fillText('R1', centerX - 200, centerY + 170);
-      ctx.fillText('R2', centerX - 150, centerY + 170);
-      ctx.fillText('R3', centerX - 100, centerY + 170);
-      ctx.fillText('C1', centerX + 100, centerY + 170);
-      ctx.fillText('C2', centerX + 150, centerY + 170);
-      
-      // Add PCB identification text
-      ctx.font = 'bold 40px Arial';
-      ctx.fillText('PCB-RAR-V1.0', centerX, centerY + 350);
-      ctx.font = '30px Arial';
-      ctx.fillText('TOP LAYER', centerX, centerY + 400);
-      
-      // Add polarization marks and reference designators
-      ctx.beginPath();
-      ctx.arc(centerX - 400, centerY - 400, 10, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Draw board outline
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(100, 100, canvas.width - 200, canvas.height - 200);
-      
-    } else {
-      // Bottom side - different pattern
-      // Add ground planes
-      ctx.fillStyle = '#cca069';
-      ctx.globalAlpha = 0.3;
-      ctx.fillRect(centerX - 350, centerY - 350, 700, 700);
-      ctx.globalAlpha = 1.0;
-      
-      // Add vias connecting layers
-      for (let x = centerX - 250; x <= centerX + 250; x += 100) {
-        for (let y = centerY - 250; y <= centerY + 250; y += 100) {
-          if ((x + y) % 200 === 0) { // Only some positions
-            ctx.fillStyle = '#cca069';
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = baseColor;
-            ctx.beginPath();
-            ctx.arc(x, y, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-          }
-        }
-      }
-      
-      // Add some bottom layer SMD pads
-      drawSMDPads(ctx, centerX - 200, centerY - 200, 30, 60);
-      drawSMDPads(ctx, centerX + 200, centerY - 200, 30, 60);
-      
-      // Add traces connecting components
-      ctx.strokeStyle = '#cca069';
-      ctx.lineWidth = 10;
-      
-      ctx.beginPath();
-      ctx.moveTo(centerX - 200, centerY - 170);
-      ctx.lineTo(centerX - 200, centerY);
-      ctx.lineTo(centerX + 200, centerY);
-      ctx.lineTo(centerX + 200, centerY - 170);
-      ctx.stroke();
-      
-      // Add text for bottom layer
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 40px Arial';
-      ctx.fillText('PCB-RAR-V1.0', centerX, centerY + 350);
-      ctx.font = '30px Arial';
-      ctx.fillText('BOTTOM LAYER', centerX, centerY + 400);
-      
-      // Add version information
-      ctx.font = '25px Arial';
-      ctx.fillText('REV 2024-04', centerX, centerY - 350);
-      
-      // Add reference marks
-      ctx.beginPath();
-      ctx.arc(centerX - 400, centerY - 400, 15, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Add text
-      ctx.fillText('GND', centerX - 100, centerY - 50);
-      ctx.fillText('3V3', centerX + 100, centerY - 50);
-    }
-  }
-  
-  return canvas;
-}
-
-// Helper function to draw SMD component pads
-function drawSMDPads(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, length: number) {
-  ctx.fillStyle = '#cca069';
-  
-  // Draw two pads with a gap in between
-  ctx.fillRect(x - length/2, y - width/2, length * 0.4, width);
-  ctx.fillRect(x + length/2 - length * 0.4, y - width/2, length * 0.4, width);
-}
-
-// Create a texture for the IC markings
-function createICTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  
-  if (ctx) {
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // IC markings
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('STM32F103', canvas.width/2, canvas.height/2 - 20);
-    
-    ctx.font = '16px Arial';
-    ctx.fillText('ARM Cortex-M3', canvas.width/2, canvas.height/2 + 10);
-    ctx.fillText('32-bit MCU', canvas.width/2, canvas.height/2 + 30);
-    
-    // Dot marking for pin 1
-    ctx.beginPath();
-    ctx.arc(canvas.width/4, canvas.height/4, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.globalAlpha = 1.0;
+  
+  // Draw grid pattern
+  ctx.strokeStyle = side === 'front' ? '#0e9340' : '#0e9340';
+  ctx.lineWidth = 0.5;
+  const gridSize = 30;
+  
+  ctx.globalAlpha = 0.3;
+  for (let x = 0; x <= width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+  
+  for (let y = 0; y <= height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1.0;
+  
+  // Draw traces
+  ctx.strokeStyle = '#dda066';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  
+  // Different trace patterns for front and back
+  if (side === 'front') {
+    // Front side traces
+    drawRandomTraces(ctx, width, height, 25, 3, 7);
+    
+    // Add connection pads
+    drawPads(ctx, width, height, 20);
+    
+    // Add silkscreen text and markings
+    ctx.fillStyle = 'white';
+    ctx.font = '24px monospace';
+    ctx.fillText('PCB-REV2.1', width * 0.1, height * 0.95);
+    ctx.fillText('MADE IN USA', width * 0.65, height * 0.95);
+    
+    // Draw component outlines
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    
+    // IC outline
+    ctx.strokeRect(width * 0.3, height * 0.3, width * 0.4, height * 0.2);
+    
+    // Pin 1 marker
+    ctx.beginPath();
+    ctx.arc(width * 0.3, height * 0.3, 10, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Add manufacturer logo
+    ctx.font = 'bold 28px Arial';
+    ctx.fillText('PCBTECH', width * 0.4, height * 0.15);
+  } else {
+    // Back side traces (different pattern)
+    drawRandomTraces(ctx, width, height, 20, 5, 9);
+    
+    // Add connection pads and vias
+    drawPads(ctx, width, height, 15);
+    
+    // Add regulatory markings
+    ctx.fillStyle = 'white';
+    ctx.font = '20px monospace';
+    ctx.fillText('SN: 23492374D', width * 0.1, height * 0.1);
+    ctx.fillText('RoHS COMPLIANT', width * 0.7, height * 0.1);
+    
+    // Add QR code-like pattern
+    const qrSize = 100;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(width * 0.8, height * 0.8, qrSize, qrSize);
+    
+    // QR code cells
+    ctx.fillStyle = 'black';
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        if (Math.random() > 0.5) {
+          ctx.fillRect(
+            width * 0.8 + i * (qrSize / 6), 
+            height * 0.8 + j * (qrSize / 6), 
+            qrSize / 6, 
+            qrSize / 6
+          );
+        }
+      }
+    }
+    
+    // Add warning text
+    ctx.fillStyle = 'white';
+    ctx.font = '18px Arial';
+    ctx.fillText('WARNING: NO USER SERVICEABLE PARTS', width * 0.25, height * 0.5);
+  }
+  
+  return canvas;
+}
+
+// Helper function to draw random traces
+function drawRandomTraces(
+  ctx: CanvasRenderingContext2D, 
+  width: number, 
+  height: number, 
+  count: number,
+  minSegments: number,
+  maxSegments: number
+) {
+  for (let i = 0; i < count; i++) {
+    let x = Math.random() * width;
+    let y = Math.random() * height;
+    const segments = Math.floor(Math.random() * (maxSegments - minSegments)) + minSegments;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    
+    for (let j = 0; j < segments; j++) {
+      // Prefer horizontal and vertical movements (PCB trace style)
+      const direction = Math.floor(Math.random() * 4);
+      const distance = Math.random() * 150 + 30;
+      
+      if (direction === 0) x += distance;
+      else if (direction === 1) x -= distance;
+      else if (direction === 2) y += distance;
+      else y -= distance;
+      
+      // Keep within bounds
+      x = Math.max(0, Math.min(width, x));
+      y = Math.max(0, Math.min(height, y));
+      
+      ctx.lineTo(x, y);
+    }
+    
+    ctx.stroke();
+  }
+}
+
+// Helper function to draw connection pads
+function drawPads(ctx: CanvasRenderingContext2D, width: number, height: number, count: number) {
+  ctx.fillStyle = '#dda066';
+  
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 10 + 5;
+    
+    // 70% circular pads, 30% square pads
+    if (Math.random() > 0.3) {
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x - size, y - size, size * 2, size * 2);
+    }
+  }
+}
+
+// Create texture for IC chips with markings
+function createICTexture(name: string = 'ATmega328P', width = 256, height = 256): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+  
+  // Black background
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, width, height);
+  
+  // Add subtle texture
+  ctx.globalAlpha = 0.05;
+  for (let i = 0; i < 500; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y, 1, 1);
+  }
+  ctx.globalAlpha = 1.0;
+  
+  // IC markings
+  ctx.fillStyle = 'white';
+  ctx.font = `bold ${height * 0.12}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText(name, width / 2, height * 0.3);
+  
+  // Manufacturer
+  ctx.font = `${height * 0.08}px monospace`;
+  ctx.fillText('MICROCHIP', width / 2, height * 0.5);
+  
+  // Pin 1 indicator (circle in corner)
+  ctx.beginPath();
+  ctx.arc(width * 0.15, height * 0.15, width * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Date code
+  ctx.font = `${height * 0.08}px monospace`;
+  ctx.fillText('2023-07-A', width / 2, height * 0.7);
+  
+  // Add logo
+  ctx.beginPath();
+  ctx.moveTo(width * 0.3, height * 0.8);
+  ctx.lineTo(width * 0.7, height * 0.8);
+  ctx.lineTo(width * 0.5, height * 0.9);
+  ctx.closePath();
+  ctx.fill();
   
   return canvas;
 }
